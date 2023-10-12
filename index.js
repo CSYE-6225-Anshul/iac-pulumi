@@ -13,7 +13,6 @@ const getAvailableAvailabilityZones = async () => {
 };
 
 // Function to calculate CIDR block for subnets
-
 const calculateSubnetCidrBlock = (baseCIDRBlock, index) => {
     const subnetMask = 24; // Adjust the subnet mask as needed
     const baseCidrParts = baseCIDRBlock.split("/");

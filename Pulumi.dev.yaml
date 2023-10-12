@@ -1,7 +1,6 @@
-encryptionsalt: v1:NATs75fUJ3Y=:v1:WDb5voNXq/Nw5Sby:yQJv0V9/M45VVtx5vUM7kmpNGFhijw==
+encryptionsalt: v1:Ty/3KJmHXsI=:v1:Rw1wSfCS6ZzchwFU:QdrYLQTD8PiqROUyLYjuBwfVUh+q+A==
 config:
   aws:profile: dev
   aws:region: us-east-2
   myPublicRouteTable:cidrBlock: "0.0.0.0/0"
   myVpc:cidrBlock: "10.0.0.0/16"
-  
