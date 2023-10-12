@@ -12,6 +12,15 @@ const getAvailableAvailabilityZones = async () => {
     return zones.names.slice(0, i);
 };
 
+// Function to calculate CIDR block for subnets
+const calculateSubnetCidrBlock = (baseCIDRBlock, index) => {
+    const subnetMask = 24; // Adjust the subnet mask as needed
+    const baseCidrParts = baseCIDRBlock.split("/");
+    const networkAddress = baseCidrParts[0].split(".");
+    const newSubnetAddress = `${networkAddress[0]}.${networkAddress[1]}.${index}.${networkAddress[2]}`;
+    return `${newSubnetAddress}/${subnetMask}`;
+};
+
 // Create VPC
 const myVpc = new aws.ec2.Vpc("myVpc", {
     cidrBlock: vpcCidrBlock,
@@ -58,10 +67,14 @@ const createSubnets = async () => {
 
     for (let i = 0; i < availabilityZones.length; i++) {
         // Create public subnet
+        const publicSubnetCidrBlock = calculateSubnetCidrBlock(vpcCidrBlock, i + 10);
+        const privateSubnetCidrBlock = calculateSubnetCidrBlock(vpcCidrBlock, i + 15);
+
         const publicSubnet = new aws.ec2.Subnet(`myPublicSubnets${i + 1}`, {
             vpcId: myVpc.id,
             availabilityZone: availabilityZones[i],
-            cidrBlock: `10.0.1${i + 1}.0/24`, // Adjust CIDR blocks as needed
+            // cidrBlock: `10.0.1${i + 1}.0/24`, // Adjust CIDR blocks as needed
+            cidrBlock: publicSubnetCidrBlock,
             tags: {
                 Name: `myPublicSubnets${i + 1}`,
             },
@@ -72,7 +85,8 @@ const createSubnets = async () => {
         const privateSubnet = new aws.ec2.Subnet(`myPrivateSubnets${i + 1}`, {
             vpcId: myVpc.id,
             availabilityZone: availabilityZones[i],
-            cidrBlock: `10.0.2${i + 1}.0/24`, // Adjust CIDR blocks as needed
+            // cidrBlock: `10.0.2${i + 1}.0/24`, // Adjust CIDR blocks as needed
+            cidrBlock: privateSubnetCidrBlock,
             tags: {
                 Name: `myPrivateSubnets${i + 1}`,
             },
