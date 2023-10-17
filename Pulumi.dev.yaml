@@ -2,5 +2,9 @@ encryptionsalt: v1:Ty/3KJmHXsI=:v1:Rw1wSfCS6ZzchwFU:QdrYLQTD8PiqROUyLYjuBwfVUh+q
 config:
   aws:profile: demo
   aws:region: us-east-2
-  myPublicRouteTable:cidrBlock: "0.0.0.0/0"
-  myVpc:cidrBlock: "10.0.0.0/16"
+  aws:amiId: ami-04ae7a4070236ca5f
+  aws:keyName: ec2
+  myApplicationPort:applicationPort: 8080
+  myPublicRouteTable:cidrBlock: 0.0.0.0/0
+  myVpc:cidrBlock: 10.0.0.0/16
+  mySubnetMask:subnetMask: 24
