@@ -31,7 +31,7 @@ const myVpc = new aws.ec2.Vpc("myVpc", {
 });
 
 // Get available zones
-const createSubnets = async () => {
+const createSubnetsAndEC2 = async () => {
     const availabilityZones = await getAvailableAvailabilityZones();
 
     // Create an Internet Gateway resource and attach it to the VPC
@@ -87,6 +87,7 @@ const createSubnets = async () => {
             availabilityZone: availabilityZones[i],
             // cidrBlock: `10.0.2${i + 1}.0/24`, // Adjust CIDR blocks as needed
             cidrBlock: privateSubnetCidrBlock,
+            mapPublicIpOnLaunch: true, // Enable auto-assign public IPv4 address
             tags: {
                 Name: `myPrivateSubnets${i + 1}`,
             },
@@ -115,8 +116,59 @@ const createSubnets = async () => {
             routeTableId: myPrivateRouteTable.id,
         });
     }
+
+    const applicationSecurityGroup = new aws.ec2.SecurityGroup("applicationSecurityGroup", {
+        vpcId: myVpc.id,
+        ingress: [
+            {
+                fromPort: 22,
+                toPort: 22,
+                protocol: "tcp",
+                cidrBlocks: ["0.0.0.0/0"],
+            },
+            {
+                fromPort: 80,
+                toPort: 80,
+                protocol: "tcp",
+                cidrBlocks: ["0.0.0.0/0"],
+            },
+            {
+                fromPort: 443,
+                toPort: 443,
+                protocol: "tcp",
+                cidrBlocks: ["0.0.0.0/0"],
+            },
+            // Add ingress rule for your application port
+            {
+                fromPort: 8080,
+                toPort: 8080,
+                protocol: "tcp",
+                cidrBlocks: ["0.0.0.0/0"],
+            },
+        ],
+    });
+    console.log('Security Group VPC ID:', applicationSecurityGroup.vpcId, applicationSecurityGroup.id);
+    
+    // Create an EC2 instance
+    const ec2Instance = new aws.ec2.Instance("myEc2Instance", {
+        vpcId: myVpc.id,
+        vpcSecurityGroupIds: [applicationSecurityGroup.id],
+        subnetId: myPublicSubnets[0].id,
+        ami: "ami-04ae7a4070236ca5f", // Replace with your AMI ID
+        keyName: "ec2",
+        instanceType: "t2.micro",
+        rootBlockDevice: {
+            volumeSize: 25,
+            volumeType: "gp2",
+            deleteOnTermination: true,
+        },
+        protectFromTermination: false,
+        tags: {
+            Name: "myEc2Instance",
+        },
+    });
 };
 
 // Create a public route in the public route table with the internet gateway as the target
 // Invoking create subnets
-createSubnets();
+createSubnetsAndEC2();
