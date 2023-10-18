@@ -1,9 +1,9 @@
-encryptionsalt: v1:Ty/3KJmHXsI=:v1:Rw1wSfCS6ZzchwFU:QdrYLQTD8PiqROUyLYjuBwfVUh+q+A==
+encryptionsalt: v1:kXO9F3N2nzE=:v1:+kGNzDXKl9xlRHuL:XYpba/mzhDwbUdS6jCzvAjzK2/mwiA==
 config:
   aws:profile: demo
-  aws:region: us-east-2
-  aws:amiId: ami-04ae7a4070236ca5f
-  aws:keyName: ec2
+  aws:region: us-east-1
+  myAmiID:amiId: ami-036acdcdd4a7e82ad
+  myKeyId:keyId: key-0a74eede9a772df14
   myApplicationPort:applicationPort: 8080
   myPublicRouteTable:cidrBlock: 0.0.0.0/0
   myVpc:cidrBlock: 10.0.0.0/16
