@@ -79,6 +79,7 @@ const createSubnetsAndEC2 = async () => {
             availabilityZone: availabilityZones[i],
             // cidrBlock: `10.0.1${i + 1}.0/24`, // Adjust CIDR blocks as needed
             cidrBlock: publicSubnetCidrBlock,
+            mapPublicIpOnLaunch: true, // Enable auto-assign public IPv4 address
             tags: {
                 Name: `myPublicSubnets${i + 1}`,
             },
@@ -91,7 +92,6 @@ const createSubnetsAndEC2 = async () => {
             availabilityZone: availabilityZones[i],
             // cidrBlock: `10.0.2${i + 1}.0/24`, // Adjust CIDR blocks as needed
             cidrBlock: privateSubnetCidrBlock,
-            mapPublicIpOnLaunch: true, // Enable auto-assign public IPv4 address
             tags: {
                 Name: `myPrivateSubnets${i + 1}`,
             },
