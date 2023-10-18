@@ -71,8 +71,8 @@ const createSubnetsAndEC2 = async () => {
 
     for (let i = 0; i < availabilityZones.length; i++) {
         // Create public subnet
-        const publicSubnetCidrBlock = calculateSubnetCidrBlock(vpcCidrBlock, i + 10);
-        const privateSubnetCidrBlock = calculateSubnetCidrBlock(vpcCidrBlock, i + 15);
+        const publicSubnetCidrBlock = calculateSubnetCidrBlock(vpcCidrBlock, i * 2 + 1);
+        const privateSubnetCidrBlock = calculateSubnetCidrBlock(vpcCidrBlock, i * 2 + 2);
 
         const publicSubnet = new aws.ec2.Subnet(`myPublicSubnets${i + 1}`, {
             vpcId: myVpc.id,
