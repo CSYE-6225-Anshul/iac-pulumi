@@ -159,7 +159,7 @@ const createSubnetsAndEC2 = async () => {
         vpcSecurityGroupIds: [applicationSecurityGroup.id],
         subnetId: myPublicSubnets[0].id,
         ami: amiId, // Replace with your AMI ID
-        keyId: keyId,
+        keyName: keyId,
         instanceType: "t2.micro",
         rootBlockDevice: {
             volumeSize: 25,

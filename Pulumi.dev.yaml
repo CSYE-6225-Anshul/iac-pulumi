@@ -1,6 +1,6 @@
 encryptionsalt: v1:kXO9F3N2nzE=:v1:+kGNzDXKl9xlRHuL:XYpba/mzhDwbUdS6jCzvAjzK2/mwiA==
 config:
-  aws:profile: demo
+  aws:profile: dev
   aws:region: us-east-1
   myAmiID:amiId: ami-036acdcdd4a7e82ad
   myKeyId:keyId: key-0a74eede9a772df14
