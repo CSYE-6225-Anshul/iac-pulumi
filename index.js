@@ -3,9 +3,9 @@ const aws = require("@pulumi/aws");
 const vpcCidrBlock = new pulumi.Config("myVpc").require("cidrBlock");
 const publicRouteTableCidrBlock = new pulumi.Config("myPublicRouteTable").require("cidrBlock");
 const region = new pulumi.Config("aws").require("region");
-const amiId = new pulumi.Config("aws").require("amiId");
-const keyName = new pulumi.Config("aws").require("keyName");
-const subnetMask = new pulumi.Config("mySubnetMask").require("subnetMask");
+const amiId = new pulumi.Config("myAmiID").require("amiId");
+const keyId = new pulumi.Config("myKeyId").require("keyId");
+const mySubnetMask = new pulumi.Config("mySubnetMask").require("subnetMask");
 const applicationPort = new pulumi.Config("myApplicationPort").require("applicationPort");
 
 // get available AWS availability zones
@@ -18,7 +18,7 @@ const getAvailableAvailabilityZones = async () => {
 
 // Function to calculate CIDR block for subnets
 const calculateSubnetCidrBlock = (baseCIDRBlock, index) => {
-    const subnetMask = subnetMask; // Adjust the subnet mask as needed
+    const subnetMask = mySubnetMask; // Adjust the subnet mask as needed
     const baseCidrParts = baseCIDRBlock.split("/");
     const networkAddress = baseCidrParts[0].split(".");
     const newSubnetAddress = `${networkAddress[0]}.${networkAddress[1]}.${index}.${networkAddress[2]}`;
@@ -159,7 +159,7 @@ const createSubnetsAndEC2 = async () => {
         vpcSecurityGroupIds: [applicationSecurityGroup.id],
         subnetId: myPublicSubnets[0].id,
         ami: amiId, // Replace with your AMI ID
-        keyName: keyName,
+        keyId: keyId,
         instanceType: "t2.micro",
         rootBlockDevice: {
             volumeSize: 25,
