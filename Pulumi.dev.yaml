@@ -2,8 +2,8 @@ encryptionsalt: v1:kXO9F3N2nzE=:v1:+kGNzDXKl9xlRHuL:XYpba/mzhDwbUdS6jCzvAjzK2/mw
 config:
   aws:profile: dev
   aws:region: us-east-1
-  myAmiID:amiId: ami-036acdcdd4a7e82ad
-  myKeyId:keyId: key-0a74eede9a772df14
+  myAmiID:amiId: ami-0039046eeb46ee797
+  myKeyId:keyId: 'ec2'
   myApplicationPort:applicationPort: 8080
   myPublicRouteTable:cidrBlock: 0.0.0.0/0
   myVpc:cidrBlock: 10.0.0.0/16
