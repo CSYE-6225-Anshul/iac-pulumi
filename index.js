@@ -7,6 +7,9 @@ const amiId = new pulumi.Config("myAmiID").require("amiId");
 const keyId = new pulumi.Config("myKeyId").require("keyId");
 const mySubnetMask = new pulumi.Config("mySubnetMask").require("subnetMask");
 const applicationPort = new pulumi.Config("myApplicationPort").require("applicationPort");
+const dbName = new pulumi.Config("database").require("dbName");
+const dbUsername = new pulumi.Config("database").require("dbUsername");
+const dbPassword = new pulumi.Config("database").require("dbPassword");
 
 // get available AWS availability zones
 const getAvailableAvailabilityZones = async () => {
@@ -36,6 +39,10 @@ const myVpc = new aws.ec2.Vpc("myVpc", {
 
 // Get available zones
 const createSubnetsAndEC2 = async () => {
+// -----------------------------------------------------------------------------------------
+// --------------------------------ZONES/GATEWAYS-------------------------------------------
+// -----------------------------------------------------------------------------------------
+
     const availabilityZones = await getAvailableAvailabilityZones();
 
     // Create an Internet Gateway resource and attach it to the VPC
@@ -45,6 +52,10 @@ const createSubnetsAndEC2 = async () => {
             Name: "myInternetGateway",
         },
     });
+
+// -----------------------------------------------------------------------------------------
+// --------------------------------ROUTES/SUBNETS-------------------------------------------
+// -----------------------------------------------------------------------------------------
 
     // Create a public route table and associate all public subnets
     const myPublicRouteTable = new aws.ec2.RouteTable("myPublicRouteTable", {
@@ -121,6 +132,10 @@ const createSubnetsAndEC2 = async () => {
         });
     }
 
+// -----------------------------------------------------------------------------------------
+// --------------------------------SECURITY GROUP-------------------------------------------
+// -----------------------------------------------------------------------------------------
+
     const applicationSecurityGroup = new aws.ec2.SecurityGroup("applicationSecurityGroup", {
         vpcId: myVpc.id,
         ingress: [
@@ -150,9 +165,124 @@ const createSubnetsAndEC2 = async () => {
                 cidrBlocks: ["0.0.0.0/0"],
             },
         ],
-    });
-    console.log('Security Group VPC ID:', applicationSecurityGroup.vpcId, applicationSecurityGroup.id);
+    }); 
+    pulumi.log.info(
+        pulumi.interpolate`Application Security Group VPC ID: ${applicationSecurityGroup.vpcId}, ID: ${applicationSecurityGroup.id}`
+    );
     
+// -----------------------------------------------------------------------------------------
+// --------------------------------RDS CONFIG-----------------------------------------------
+// -----------------------------------------------------------------------------------------
+    
+    const databaseSecurityGroup = new aws.ec2.SecurityGroup("databaseSecurityGroup", {
+        vpcId: myVpc.id,
+        ingress: [
+            // Add ingress rule for your application port
+            {
+                fromPort: 3306,
+                toPort: 3306,
+                protocol: "tcp",
+                securityGroups: [applicationSecurityGroup.id]
+            },
+        ],
+        egress: [
+             // Add egress rule for your application port
+             {
+                fromPort: 3306,
+                toPort: 3306,
+                protocol: "tcp",
+                securityGroups: [applicationSecurityGroup.id]
+            },
+        ]
+    });
+    await databaseSecurityGroup.id;
+
+    pulumi.log.info(
+        pulumi.interpolate`Database Security Group VPC ID: ${databaseSecurityGroup.id}`
+    );
+    
+    // Check if the RDS parameter group already exists
+    // const existingRdsParameterGroup = aws.rds.getParameterGroup({
+    //     name: "myRdsParameterGroup",
+    // });
+
+    // Create an RDS parameter group
+    const rdsParameterGroup = new aws.rds.ParameterGroup("myRdsParameterGroup", {
+        vpcId: myVpc.id,
+        family: "mariadb10.6", // Change this to match your database engine and version
+        name: "my-rds-parameter-group",
+        parameters: [
+            {
+                name: "character_set_server",
+                value: "utf8",
+            },
+            {
+                name: "collation_server",
+                value: "utf8_general_ci",
+            },
+        ],
+        tags: {
+            Name: "myRdsParameterGroup",
+        },
+    });
+
+    // Create a DB subnet group
+    const dbSubnetGroup = new aws.rds.SubnetGroup("myDbSubnetGroup", {
+        subnetIds: [myPrivateSubnets[0].id, myPrivateSubnets[1].id],
+        name: "my-db-subnet-group",
+        tags: {
+            Name: "myDbSubnetGroup",
+        },
+    });
+
+    // Create an RDS instance
+    const rdsInstance = new aws.rds.Instance("myRDSInstance", {
+        vpcId: myVpc.id,
+        vpcSecurityGroupIds: [databaseSecurityGroup.id],
+        dbSubnetGroupName: dbSubnetGroup.name,
+        engine: "mariadb",
+        instanceClass: "db.t2.micro",
+        multiAz: false,
+        identifier: "csye6225",
+        dbName: dbName,
+        username: dbUsername,
+        password: dbPassword,
+        allocatedStorage: 20, // Adjust as needed
+        maxAllocatedStorage: 20, // Adjust as needed
+        skipFinalSnapshot: true,
+        publiclyAccessible: false, // Set to false to restrict access to the internet
+        parameterGroupName: rdsParameterGroup.name,
+        tags: {
+            Name: "myRDSInstance",
+        },
+    });
+    pulumi.log.info(
+        pulumi.interpolate`RDS instance id: ${rdsInstance.id}`
+    );
+
+// -----------------------------------------------------------------------------------------
+// --------------------------------USER DATA CONFIG-----------------------------------------
+// -----------------------------------------------------------------------------------------
+
+    // Specify the database configuration
+    // const dbUsername = "root";
+    // const dbPassword = "anshul";
+    const dbHostname = pulumi.interpolate`${rdsInstance.endpoint}`;
+
+    // User data script to configure the EC2 instance
+    const userDataScript = pulumi.interpolate`#!/bin/bash
+    echo "export DB_USERNAME=${dbUsername}" >> /etc/environment
+    echo "export DB_PASSWORD=${dbPassword}" >> /etc/environment
+    echo "export DB_HOSTNAME=${dbHostname}" >> /etc/environment
+    `;
+    pulumi.log.info(
+        pulumi.interpolate`DB data: dbHostname, userDataScript - ${dbHostname}, ${userDataScript}`
+    );
+
+// -----------------------------------------------------------------------------------------
+// --------------------------------START EC2 INSTANCE---------------------------------------
+// -----------------------------------------------------------------------------------------
+
     // Create an EC2 instance
     const ec2Instance = new aws.ec2.Instance("myEc2Instance", {
         vpcId: myVpc.id,
@@ -167,11 +297,12 @@ const createSubnetsAndEC2 = async () => {
             deleteOnTermination: true,
         },
         protectFromTermination: false,
+        userData: userDataScript, // Attach the user data script
         tags: {
             Name: "myEc2Instance",
         },
     });
-};
+}
 
 // Create a public route in the public route table with the internet gateway as the target
 // Invoking create subnets
