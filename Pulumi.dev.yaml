@@ -8,3 +8,6 @@ config:
   myPublicRouteTable:cidrBlock: 0.0.0.0/0
   myVpc:cidrBlock: 10.0.0.0/16
   mySubnetMask:subnetMask: 24
+  database:dbName: cloud_local
+  database:dbUsername: root
+  database:dbPassword: anshul1610
