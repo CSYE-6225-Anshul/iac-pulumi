@@ -271,9 +271,10 @@ const createSubnetsAndEC2 = async () => {
 
     // User data script to configure the EC2 instance
     const userDataScript = pulumi.interpolate`#!/bin/bash
-    echo "export DB_USERNAME=${dbUsername}" >> /etc/environment
-    echo "export DB_PASSWORD=${dbPassword}" >> /etc/environment
-    echo "export DB_HOSTNAME=${dbHostname}" >> /etc/environment
+    echo "export MYSQL_DATABASE=${dbName}" >> /etc/environment
+    echo "export MYSQL_USER=${dbUsername}" >> /etc/environment
+    echo "export MYSQL_PASSWORD=${dbPassword}" >> /etc/environment
+    echo "export MYSQL_HOSTNAME=${dbHostname}" >> /etc/environment
     `;
     pulumi.log.info(
         pulumi.interpolate`DB data: dbHostname, userDataScript - ${dbHostname}, ${userDataScript}`
@@ -297,7 +298,7 @@ const createSubnetsAndEC2 = async () => {
             deleteOnTermination: true,
         },
         protectFromTermination: false,
-        userData: userDataScript, // Attach the user data script
+        userData: userDataScript.apply(encodeURIComponent), // Attach the user data script
         tags: {
             Name: "myEc2Instance",
         },
