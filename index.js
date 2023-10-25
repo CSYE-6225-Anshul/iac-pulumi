@@ -76,7 +76,6 @@ const createSubnetsAndEC2 = async () => {
         destinationCidrBlock: publicRouteTableCidrBlock,
         gatewayId: myInternetGateway.id,
     });
-
     const myPublicSubnets = [];
     const myPrivateSubnets = [];
 
@@ -165,6 +164,15 @@ const createSubnetsAndEC2 = async () => {
                 cidrBlocks: ["0.0.0.0/0"],
             },
         ],
+        egress: [
+            // Add egress rule for your application port
+            {
+               fromPort: 0,
+               toPort: 0,
+               protocol: "-1",
+               cidrBlocks: ["0.0.0.0/0"],
+           },
+        ]
     }); 
     pulumi.log.info(
         pulumi.interpolate`Application Security Group VPC ID: ${applicationSecurityGroup.vpcId}, ID: ${applicationSecurityGroup.id}`
@@ -183,7 +191,7 @@ const createSubnetsAndEC2 = async () => {
                 toPort: 3306,
                 protocol: "tcp",
                 securityGroups: [applicationSecurityGroup.id]
-            },
+            }
         ],
         egress: [
              // Add egress rule for your application port
@@ -192,19 +200,13 @@ const createSubnetsAndEC2 = async () => {
                 toPort: 3306,
                 protocol: "tcp",
                 securityGroups: [applicationSecurityGroup.id]
-            },
+            }
         ]
     });
-    await databaseSecurityGroup.id;
 
     pulumi.log.info(
         pulumi.interpolate`Database Security Group VPC ID: ${databaseSecurityGroup.id}`
     );
-    
-    // Check if the RDS parameter group already exists
-    // const existingRdsParameterGroup = aws.rds.getParameterGroup({
-    //     name: "myRdsParameterGroup",
-    // });
 
     // Create an RDS parameter group
     const rdsParameterGroup = new aws.rds.ParameterGroup("myRdsParameterGroup", {
@@ -267,14 +269,14 @@ const createSubnetsAndEC2 = async () => {
     // Specify the database configuration
     // const dbUsername = "root";
     // const dbPassword = "anshul";
-    const dbHostname = pulumi.interpolate`${rdsInstance.endpoint}`;
+    const dbHostname = pulumi.interpolate`${rdsInstance.address}`;
 
     // User data script to configure the EC2 instance
     const userDataScript = pulumi.interpolate`#!/bin/bash
-    echo "export MYSQL_DATABASE=${dbName}" >> /etc/environment
-    echo "export MYSQL_USER=${dbUsername}" >> /etc/environment
-    echo "export MYSQL_PASSWORD=${dbPassword}" >> /etc/environment
-    echo "export MYSQL_HOSTNAME=${dbHostname}" >> /etc/environment
+    echo "MYSQL_DATABASE=${dbName}" >> /home/admin/webapp/.env
+    echo "MYSQL_USER=${dbUsername}" >> /home/admin/webapp/.env
+    echo "MYSQL_PASSWORD=${dbPassword}" >> /home/admin/webapp/.env
+    echo "MYSQL_HOST=${dbHostname}" >> /home/admin/webapp/.env
     `;
     pulumi.log.info(
         pulumi.interpolate`DB data: dbHostname, userDataScript - ${dbHostname}, ${userDataScript}`
@@ -298,7 +300,7 @@ const createSubnetsAndEC2 = async () => {
             deleteOnTermination: true,
         },
         protectFromTermination: false,
-        userData: userDataScript.apply(encodeURIComponent), // Attach the user data script
+        userData: userDataScript, // Attach the user data script
         tags: {
             Name: "myEc2Instance",
         },
