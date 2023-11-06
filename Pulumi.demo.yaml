@@ -1,6 +1,6 @@
-encryptionsalt: v1:gBj7o8K7ETI=:v1:Vx965xG2NZwtzd01:zMFGHTEuFOPOopCn2kujTHELcvEtQw==
+encryptionsalt: v1:wO5uhGLHqnA=:v1:TrPfuEibio4Akdrs:rwSWWaB3vK4aIaZqFIy/kLKp507IzA==
 config:
-  aws:profile: dev
+  aws:profile: demo
   aws:region: us-east-1
   myAmiID:amiId: ami-06519b3cd2e73d37b
   myKeyId:keyId: 'ec2'
@@ -13,4 +13,3 @@ config:
   database:dbPassword: anshul1610
   domain:hostedZoneId: Z07353843HLA4AEQ3JIL0
   domain:subdomain: 
-  

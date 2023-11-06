@@ -10,6 +10,8 @@ const applicationPort = new pulumi.Config("myApplicationPort").require("applicat
 const dbName = new pulumi.Config("database").require("dbName");
 const dbUsername = new pulumi.Config("database").require("dbUsername");
 const dbPassword = new pulumi.Config("database").require("dbPassword");
+const hostedZoneId = new pulumi.Config("domain").require("hostedZoneId");
+const subdomain = new pulumi.Config("domain").require("subdomain");
 
 // get available AWS availability zones
 const getAvailableAvailabilityZones = async () => {
@@ -156,7 +158,7 @@ const createSubnetsAndEC2 = async () => {
                 protocol: "tcp",
                 cidrBlocks: ["0.0.0.0/0"],
             },
-            // Add ingress rule for your application port
+            // Add ingress rule
             {
                 fromPort: applicationPort,
                 toPort: applicationPort,
@@ -165,7 +167,7 @@ const createSubnetsAndEC2 = async () => {
             },
         ],
         egress: [
-            // Add egress rule for your application port
+            // Add egress rule
             {
                fromPort: 0,
                toPort: 0,
@@ -185,7 +187,7 @@ const createSubnetsAndEC2 = async () => {
     const databaseSecurityGroup = new aws.ec2.SecurityGroup("databaseSecurityGroup", {
         vpcId: myVpc.id,
         ingress: [
-            // Add ingress rule for your application port
+            // Add ingress rule
             {
                 fromPort: 3306,
                 toPort: 3306,
@@ -194,7 +196,7 @@ const createSubnetsAndEC2 = async () => {
             }
         ],
         egress: [
-             // Add egress rule for your application port
+             // Add egress rule
              {
                 fromPort: 3306,
                 toPort: 3306,
@@ -211,7 +213,7 @@ const createSubnetsAndEC2 = async () => {
     // Create an RDS parameter group
     const rdsParameterGroup = new aws.rds.ParameterGroup("myRdsParameterGroup", {
         vpcId: myVpc.id,
-        family: "mariadb10.6", // Change this to match your database engine and version
+        family: "mariadb10.6",
         name: "my-rds-parameter-group",
         parameters: [
             {
@@ -249,8 +251,8 @@ const createSubnetsAndEC2 = async () => {
         dbName: dbName,
         username: dbUsername,
         password: dbPassword,
-        allocatedStorage: 20, // Adjust as needed
-        maxAllocatedStorage: 20, // Adjust as needed
+        allocatedStorage: 20,
+        maxAllocatedStorage: 20,
         skipFinalSnapshot: true,
         publiclyAccessible: false, // Set to false to restrict access to the internet
         parameterGroupName: rdsParameterGroup.name,
@@ -263,12 +265,39 @@ const createSubnetsAndEC2 = async () => {
     );
 
 // -----------------------------------------------------------------------------------------
+// --------------------------------CLOUD WATCH LOGS-----------------------------------------
+// -----------------------------------------------------------------------------------------
+    
+    // Create IAM Role for CloudWatch Agent
+    const cloudWatchAgentRole = new aws.iam.Role("cloudWatchAgentRole", {
+        assumeRolePolicy: JSON.stringify({
+            Version: "2012-10-17",
+            Statement: [{
+                Action: "sts:AssumeRole",
+                Effect: "Allow",
+                Principal: {
+                    Service: "ec2.amazonaws.com",
+                },
+            }],
+        }),
+    });
+
+    // Attach IAM policy for CloudWatch Agent to the role
+    const cloudWatchAgentPolicyAttachment = new aws.iam.PolicyAttachment("cloudWatchAgentPolicyAttachment", {
+        policyArn: "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy",
+        roles: [cloudWatchAgentRole.name],
+    });
+
+    // Attach IAM role to EC2 instance
+    const ec2InstanceRoleAttachment = new aws.iam.InstanceProfile("ec2InstanceProfile", {
+        role: cloudWatchAgentRole.name,
+    });
+
+// -----------------------------------------------------------------------------------------
 // --------------------------------USER DATA CONFIG-----------------------------------------
 // -----------------------------------------------------------------------------------------
 
     // Specify the database configuration
-    // const dbUsername = "root";
-    // const dbPassword = "anshul";
     const dbHostname = pulumi.interpolate`${rdsInstance.address}`;
 
     // User data script to configure the EC2 instance
@@ -277,10 +306,16 @@ const createSubnetsAndEC2 = async () => {
     echo "MYSQL_USER=${dbUsername}" >> /opt/csye6225/.env
     echo "MYSQL_PASSWORD=${dbPassword}" >> /opt/csye6225/.env
     echo "MYSQL_HOST=${dbHostname}" >> /opt/csye6225/.env
+    
+    # Start the CloudWatch Agent and enable it to start on boot
+    sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+    sudo systemctl enable amazon-cloudwatch-agent
+    sudo systemctl start amazon-cloudwatch-agent
     `;
-    pulumi.log.info(
-        pulumi.interpolate`DB data: dbHostname, userDataScript - ${dbHostname}, ${userDataScript}`
-    );
+    
+    // pulumi.log.info(
+    //     pulumi.interpolate`DB data: dbHostname, userDataScript - ${dbHostname}, ${userDataScript}`
+    // );
 
 // -----------------------------------------------------------------------------------------
 // --------------------------------START EC2 INSTANCE---------------------------------------
@@ -291,7 +326,7 @@ const createSubnetsAndEC2 = async () => {
         vpcId: myVpc.id,
         vpcSecurityGroupIds: [applicationSecurityGroup.id],
         subnetId: myPublicSubnets[0].id,
-        ami: amiId, // Replace with your AMI ID
+        ami: amiId,
         keyName: keyId,
         instanceType: "t2.micro",
         rootBlockDevice: {
@@ -300,13 +335,32 @@ const createSubnetsAndEC2 = async () => {
             deleteOnTermination: true,
         },
         protectFromTermination: false,
-        userData: userDataScript, // Attach the user data script
+        userData: userDataScript,
         tags: {
             Name: "myEc2Instance",
         },
+        iamInstanceProfile: ec2InstanceRoleAttachment.name
+    });
+    
+    // const ec2InstanceProfileAttachment = new aws.ec2.InstanceProfileAttachment("ec2InstanceProfileAttachment", {
+    //     instanceProfile: ec2InstanceRoleAttachment.name,
+    //     instanceId: ec2Instance.id,
+    // });
+
+// -----------------------------------------------------------------------------------------
+// --------------------------------A RECORD-------------------------------------------------
+// -----------------------------------------------------------------------------------------
+
+    // Create an A record
+    const aRecord = new aws.route53.Record("demo.anshulsharma.me", {
+        zoneId: hostedZoneId,
+        name: subdomain,
+        type: "A",
+        ttl: 60, // TTL in seconds
+        records: [ec2Instance.publicIp],
+        allowOverwrite: true,
     });
 }
 
-// Create a public route in the public route table with the internet gateway as the target
-// Invoking create subnets
+// Invoking function
 createSubnetsAndEC2();
