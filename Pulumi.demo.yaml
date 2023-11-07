@@ -13,3 +13,6 @@ config:
   database:dbPassword: anshul1610
   domain:hostedZoneId: Z07353843HLA4AEQ3JIL0
   domain:subdomain: 
+  metrics:hostname: localhost
+  metrics:port: 8125
+  
