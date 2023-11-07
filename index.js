@@ -308,7 +308,7 @@ const createSubnetsAndEC2 = async () => {
     echo "MYSQL_HOST=${dbHostname}" >> /opt/csye6225/.env
     
     # Start the CloudWatch Agent and enable it to start on boot
-    sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+    sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/csye6225/api/cloudwatch/config.json -s
     sudo systemctl enable amazon-cloudwatch-agent
     sudo systemctl start amazon-cloudwatch-agent
     `;
