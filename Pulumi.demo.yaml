@@ -2,7 +2,7 @@ encryptionsalt: v1:wO5uhGLHqnA=:v1:TrPfuEibio4Akdrs:rwSWWaB3vK4aIaZqFIy/kLKp507I
 config:
   aws:profile: demo
   aws:region: us-east-1
-  myAmiID:amiId: ami-0c3d405f58ee08e5a
+  myAmiID:amiId: ami-058543b7ff41da36c
   myKeyId:keyId: 'ec2'
   myApplicationPort:applicationPort: 8080
   myPublicRouteTable:cidrBlock: 0.0.0.0/0
