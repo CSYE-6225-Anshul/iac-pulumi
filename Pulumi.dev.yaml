@@ -2,7 +2,6 @@ encryptionsalt: v1:gBj7o8K7ETI=:v1:Vx965xG2NZwtzd01:zMFGHTEuFOPOopCn2kujTHELcvEt
 config:
   aws:profile: dev
   aws:region: us-east-1
-  myAmiID:amiId: ami-06519b3cd2e73d37b
   myKeyId:keyId: 'ec2'
   myApplicationPort:applicationPort: 8080
   myPublicRouteTable:cidrBlock: 0.0.0.0/0
@@ -11,7 +10,7 @@ config:
   database:dbName: cloud_local
   database:dbUsername: root
   database:dbPassword: anshul1610
-  domain:hostedZoneId: Z07353843HLA4AEQ3JIL0
+  domain:hostedZoneId: Z0591561QV2WLJRB4K3Q
   domain:subdomain: 
   metrics:hostname: localhost
   metrics:port: 8125
