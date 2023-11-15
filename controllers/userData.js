@@ -21,7 +21,7 @@ const userDataScript = (rdsInstance) => {
     echo "REGION=${region}" >> /opt/csye6225/.env
 
     # Start the CloudWatch Agent and enable it to start on boot
-    sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/tmp/config.json -s
+    sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/csye6225/api/cloudwatch/config.json -s
 
     # Enable and start the systemd service
     sudo systemctl daemon-reload
@@ -33,7 +33,6 @@ const userDataScript = (rdsInstance) => {
     `;
     
     const buffer = userData.apply(u => Buffer.from(u).toString('base64'));
-    console.log('buffer', buffer)
     return buffer;
 }
 
