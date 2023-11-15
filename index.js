@@ -1,3 +1,4 @@
+const pulumi = require("@pulumi/pulumi");
 const getAmi = require('./controllers/getAmi');
 const getAvailabilityZones = require('./controllers/availabilityZones');
 const createVpc = require('./controllers/vpc');
@@ -32,14 +33,14 @@ const createCloud = async () => {
     const securityGroups = createSecurityGroups(myVpc);
 
     // Create RDS instance
-    // const rdsInstance = createRdsInstance(myVpc, subnets, securityGroups);
+    const rdsInstance = createRdsInstance(myVpc, subnets, securityGroups);
 
     // Create Cloud Watch agent and logs
     const cloudWatchAgent = createCloudWatch();
 
     // User data script to configure the EC2 instance
-    const userDataScript = createUserData('12');
-
+    const userDataScript = createUserData(rdsInstance.rdsInstance);
+    
     // Create an EC2 instance
     // const ec2Instance = createEc2Instance(amiId, myVpc, subnets, securityGroups, userDataScript, cloudWatchAgent);
 
@@ -47,7 +48,7 @@ const createCloud = async () => {
     const loadBalancer = createLoadBalancer(myVpc, subnets, securityGroups);
 
     // Create Auto Scaling Group
-    const autoScalingGroup = createAutoScalingGroup(amiId, myVpc, subnets, securityGroups, userDataScript, cloudWatchAgent, loadBalancer);
+    const autoScalingGroup = createAutoScalingGroup(amiId, myVpc, subnets, securityGroups, userDataScript, cloudWatchAgent, loadBalancer, rdsInstance.rdsInstance);
 
     // Create an A record
     const aRecord = createRoute53(loadBalancer);

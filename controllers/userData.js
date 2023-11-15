@@ -10,7 +10,7 @@ const NODE_ENV = 'production';
 // User data script to configure the EC2 instance
 const userDataScript = (rdsInstance) => {
     const dbHostname = pulumi.interpolate`${rdsInstance.address}`;
-    return pulumi.interpolate`#!/bin/bash
+    const userData = pulumi.interpolate`#!/bin/bash
     echo "MYSQL_DATABASE=${dbName}" >> /opt/csye6225/.env
     echo "MYSQL_USER=${dbUsername}" >> /opt/csye6225/.env
     echo "MYSQL_PASSWORD=${dbPassword}" >> /opt/csye6225/.env
@@ -31,6 +31,10 @@ const userDataScript = (rdsInstance) => {
     sudo systemctl enable cloud.service
     sudo systemctl start cloud.service
     `;
+    
+    const buffer = userData.apply(u => Buffer.from(u).toString('base64'));
+    console.log('buffer', buffer)
+    return buffer;
 }
 
 module.exports = userDataScript;

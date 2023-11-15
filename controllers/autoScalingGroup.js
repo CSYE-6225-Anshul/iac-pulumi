@@ -3,36 +3,12 @@ const aws = require("@pulumi/aws");
 // const amiId = new pulumi.Config("myAmiID").require("amiId");
 const keyId = new pulumi.Config("myKeyId").require("keyId");
 
-const asg = (amiId, myVpc, subnets, securityGroups, userDataScript, cloudWatchAgent, loadBalancer) => {
+const asg = async (amiId, myVpc, subnets, securityGroups, userDataScript, cloudWatchAgent, loadBalancer, rdsInstance) => {
     let myPublicSubnets = subnets.myPublicSubnets;
     let applicationSecurityGroup = securityGroups.applicationSecurityGroup;
     let ec2InstanceRoleAttachment = cloudWatchAgent.ec2InstanceRoleAttachment;
     let lbTargetGroup = loadBalancer.targetGroup;
-    console.log('---------pulumi user data script----------', userDataScript)
-    let encodedUserData = Buffer.from(userDataScript).toString('base64');
-    console.log('---------pulumi user data script----------', encodedUserData)
     
-    // const asgLaunchConfig = new aws.ec2.LaunchConfiguration("asgLaunchConfig", {
-    //     vpcId: myVpc.id,
-    //     securityGroups: [applicationSecurityGroup.id],
-    //     subnetId: myPublicSubnets[0].id,
-    //     imageId: amiId,
-    //     keyName: keyId,
-    //     instanceType: "t2.micro",
-    //     rootBlockDevice: {
-    //         volumeSize: 25,
-    //         volumeType: "gp2",
-    //         deleteOnTermination: true,
-    //     },
-    //     protectFromTermination: false,
-    //     userData: encodedUserData,
-    //     tags: {
-    //         Name: "myEc2Instance",
-    //     },
-    //     iamInstanceProfile: ec2InstanceRoleAttachment.name,
-    //     associatePublicIpAddress: true,
-    // });
-
     const asgLaunchTemplate = new aws.ec2.LaunchTemplate("myLaunchTemplate", {
         vpcId: myVpc.id,
         securityGroups: [applicationSecurityGroup.id],
@@ -47,7 +23,7 @@ const asg = (amiId, myVpc, subnets, securityGroups, userDataScript, cloudWatchAg
             deleteOnTermination: true,
         },
         protectFromTermination: false,
-        userData: encodedUserData,
+        userData: userDataScript,
         tags: {
             Name: "myAutoScalingGroup",
         },
@@ -55,6 +31,9 @@ const asg = (amiId, myVpc, subnets, securityGroups, userDataScript, cloudWatchAg
             name: ec2InstanceRoleAttachment.name
         },
         associatePublicIpAddress: true,
+    },
+    {
+        dependsOn: rdsInstance
     });
 
     const autoScalingGroup = new aws.autoscaling.Group("myAutoScalingGroup", {
@@ -76,7 +55,7 @@ const asg = (amiId, myVpc, subnets, securityGroups, userDataScript, cloudWatchAg
         instanceRefresh: {
             strategy: "Rolling",
             preferences: {
-                minHealthyPercentage: 90,
+                minHealthyPercentage: 70,
                 instanceWarmup: 60,
             },
         },
@@ -86,7 +65,7 @@ const asg = (amiId, myVpc, subnets, securityGroups, userDataScript, cloudWatchAg
     const autoScalingPolicyScaleOut = new aws.autoscaling.Policy("scaleOutPolicy", {
         scalingAdjustment: 1, // Increase capacity by 1 instance
         adjustmentType: "ChangeInCapacity",
-        cooldown: 300, // 5 minutes cooldown
+        cooldown: 60, // 5 minutes cooldown
         autoscalingGroupName: autoScalingGroup.name,
         policyType: 'SimpleScaling'
     });
@@ -94,7 +73,7 @@ const asg = (amiId, myVpc, subnets, securityGroups, userDataScript, cloudWatchAg
     const autoScalingPolicyScaleIn = new aws.autoscaling.Policy("scaleInPolicy", {
         scalingAdjustment: -1, // Decrease capacity by 1 instance
         adjustmentType: "ChangeInCapacity",
-        cooldown: 300, // 5 minutes cooldown
+        cooldown: 60, // 5 minutes cooldown
         autoscalingGroupName: autoScalingGroup.name,
         policyType: 'SimpleScaling'
     });
@@ -103,7 +82,7 @@ const asg = (amiId, myVpc, subnets, securityGroups, userDataScript, cloudWatchAg
     const highCpuAlarm = new aws.cloudwatch.MetricAlarm("HighCpuAlarm", {
         alarmDescription: "Scaling Up Alarm",
         comparisonOperator: "GreaterThanOrEqualToThreshold",
-        evaluationPeriods: "2",
+        evaluationPeriods: "1",
         metricName: "CPUUtilization",
         namespace: "AWS/EC2",
         period: "60",
