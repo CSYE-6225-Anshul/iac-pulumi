@@ -32,16 +32,6 @@ const lb = (myVpc, subnets, securityGroups) => {
         }
     });
 
-    // const listenerHttp = new aws.lb.ListenerHttp("myHTTPListener", {
-    //     loadBalancerArn: applicationLoadBalancer.arn,
-    //     port: 80,
-    //     protocol: "HTTP",
-    //     defaultActions: [{
-    //         type: "forward",
-    //         targetGroupArn: targetGroup.arn
-    //     }],
-    // });
-
     const listener = new aws.lb.Listener("myListener", {
         loadBalancerArn: applicationLoadBalancer.arn,
         port: 80,
@@ -54,8 +44,7 @@ const lb = (myVpc, subnets, securityGroups) => {
     return {
         applicationLoadBalancer,
         listener,
-        targetGroup,
-        // listenerHttp
+        targetGroup
     }
 }
 

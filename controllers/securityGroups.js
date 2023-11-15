@@ -21,15 +21,6 @@ const sg = (myVpc) => {
                 ipv6_cidr_blocks: ["::/0"]
             },
         ],
-        egress: [
-            {
-                fromPort: 0,
-                toPort: 0,
-                protocol: "-1",
-                cidrBlocks: ["0.0.0.0/0"],
-                ipv6_cidr_blocks: ["::/0"]
-            }
-        ]
     });
 
     pulumi.log.info(
@@ -46,28 +37,14 @@ const sg = (myVpc) => {
                 cidrBlocks: ["0.0.0.0/0"],
                 ipv6_cidr_blocks: ["::/0"]
             },
-                // {
-                //     fromPort: 80,
-                //     toPort: 80,
-                //     protocol: "tcp",
-                //     cidrBlocks: ["0.0.0.0/0"],
-                //     ipv6_cidr_blocks: ["::/0"]
-                // },
-                // {
-                //     fromPort: 443,
-                //     toPort: 443,
-                //     protocol: "tcp",
-                //     cidrBlocks: ["0.0.0.0/0"],
-                //     ipv6_cidr_blocks: ["::/0"]
-                // },
-                {
-                    fromPort: applicationPort,
-                    toPort: applicationPort,
-                    protocol: "tcp",
-                    securityGroups: [loadBalancerSecurityGroup.id]
-                    // cidrBlocks: ["0.0.0.0/0"],
-                    // ipv6_cidr_blocks: ["::/0"]
-                },
+            {
+                fromPort: applicationPort,
+                toPort: applicationPort,
+                protocol: "tcp",
+                securityGroups: [loadBalancerSecurityGroup.id]
+                // cidrBlocks: ["0.0.0.0/0"],
+                // ipv6_cidr_blocks: ["::/0"]
+            },
         ],
         egress: [
             {
@@ -102,20 +79,20 @@ const sg = (myVpc) => {
         ]
     });
 
-    // Add ingress rule for traffic from load balancer security group
-    // new aws.ec2.SecurityGroupRule("applicationSecurityGroupRule1", {
-    //     securityGroupId: applicationSecurityGroup.id,
-    //     type: "ingress",
-    //     fromPort: 8080,
-    //     toPort: 8080,
-    //     protocol: "tcp",
-    //     sourceSecurityGroupId: loadBalancerSecurityGroup.id,
-    // });
+    const myLoadBalancerEgressRule = new aws.ec2.SecurityGroupRule("myLoadBalancerEgressRule", {
+        type: "egress",
+        securityGroupId: loadBalancerSecurityGroup.id,
+        protocol: "tcp",
+        fromPort: applicationPort,
+        toPort: applicationPort,
+        sourceSecurityGroupId: applicationSecurityGroup.id
+    });
 
     return {
         applicationSecurityGroup,
         databaseSecurityGroup,
-        loadBalancerSecurityGroup
+        loadBalancerSecurityGroup,
+        myLoadBalancerEgressRule
     }
 }
 
