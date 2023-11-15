@@ -7,7 +7,7 @@ let amiId = () => {
         filters: [
             {
                 name: "name",
-                values: ["cyse 6225_*"],
+                values: ["cyse_6225_*"],
             },
         ],
         owners: ['self'],
