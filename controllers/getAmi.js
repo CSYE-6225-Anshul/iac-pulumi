@@ -10,7 +10,7 @@ let amiId = () => {
                 values: ["cyse_6225_*"],
             },
         ],
-        owners: ['self'],
+        // owners: ['self'],
         mostRecent: true,
     }).then(ami => ami.id);
 }
