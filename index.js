@@ -11,6 +11,7 @@ const createUserData = require('./controllers/userData');
 const createEc2Instance = require('./controllers/ec2Instance');
 const createAutoScalingGroup = require('./controllers/autoScalingGroup');
 const createLoadBalancer = require('./controllers/loadBalancer');
+const createSnsTopic = require('./controllers/snsTopic');
 const createRoute53 = require('./controllers/route53');
 
 const createCloud = async () => {
@@ -49,6 +50,9 @@ const createCloud = async () => {
 
     // Create Auto Scaling Group
     const autoScalingGroup = createAutoScalingGroup(amiId, myVpc, subnets, securityGroups, userDataScript, cloudWatchAgent, loadBalancer, rdsInstance.rdsInstance);
+
+    // Create SNS topic
+    const snsTopic = createSnsTopic();
 
     // Create an A record
     const aRecord = createRoute53(loadBalancer);
