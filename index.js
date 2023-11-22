@@ -39,8 +39,11 @@ const createCloud = async () => {
     // Create Cloud Watch agent and logs
     const cloudWatchAgent = createCloudWatch();
 
+    // Create SNS topic
+    const snsTopic = createSnsTopic();
+
     // User data script to configure the EC2 instance
-    const userDataScript = createUserData(rdsInstance.rdsInstance);
+    const userDataScript = createUserData(rdsInstance.rdsInstance, snsTopic);
     
     // Create an EC2 instance
     // const ec2Instance = createEc2Instance(amiId, myVpc, subnets, securityGroups, userDataScript, cloudWatchAgent);
@@ -50,9 +53,6 @@ const createCloud = async () => {
 
     // Create Auto Scaling Group
     const autoScalingGroup = createAutoScalingGroup(amiId, myVpc, subnets, securityGroups, userDataScript, cloudWatchAgent, loadBalancer, rdsInstance.rdsInstance);
-
-    // Create SNS topic
-    const snsTopic = createSnsTopic();
 
     // Create an A record
     const aRecord = createRoute53(loadBalancer);

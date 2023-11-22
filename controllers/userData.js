@@ -8,8 +8,9 @@ const region = new pulumi.Config("aws").require("region");
 const NODE_ENV = 'production';
 
 // User data script to configure the EC2 instance
-const userDataScript = (rdsInstance) => {
+const userDataScript = (rdsInstance, snsTopic) => {
     const dbHostname = pulumi.interpolate`${rdsInstance.address}`;
+    const snsArn = pulumi.interpolate`${snsTopic.arn}`;
     const userData = pulumi.interpolate`#!/bin/bash
     echo "MYSQL_DATABASE=${dbName}" >> /opt/csye6225/.env
     echo "MYSQL_USER=${dbUsername}" >> /opt/csye6225/.env
@@ -19,6 +20,7 @@ const userDataScript = (rdsInstance) => {
     echo "METRICS_PORT=${metricsPort}" >> /opt/csye6225/.env
     echo "NODE_ENV=${NODE_ENV}" >> /opt/csye6225/.env
     echo "REGION=${region}" >> /opt/csye6225/.env
+    echo "SNS_TOPIC=${snsArn}" >> /opt/csye6225/.env
 
     # Start the CloudWatch Agent and enable it to start on boot
     sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/csye6225/api/cloudwatch/config.json -s
