@@ -10,8 +10,7 @@ const lambdaFunction = (snsTopic, storageBucket, serviceAccount, dynamoDB, lambd
     let accessKeys = serviceAccount.accessKeys;
     let dynamoTable = dynamoDB;
     let lr = lambdaRole.lambdaRole;
-    // let lak = lambdaRole.lambdaAccessKeys;
-
+    
     // Lambda function
     let lambdaFunc = new aws.lambda.Function("lambdaFunction", {
         code: new pulumi.asset.FileArchive("./serverless.zip"),
