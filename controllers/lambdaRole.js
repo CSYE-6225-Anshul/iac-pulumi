@@ -19,7 +19,7 @@ const lambdaRole = (snsTopic) => {
     });
 
     // sns and ses policy to lambda fn
-    let snsPublishPolicy = new aws.iam.RolePolicy("sns&sesPublishPolicy", {
+    let snsPublishPolicy = new aws.iam.RolePolicy("snsPublishPolicy", {
         role: lambdaRole.id,
         policy: pulumi.all([snsArn]).apply(([snsArn]) => JSON.stringify({
             Version: "2012-10-17",
@@ -28,17 +28,18 @@ const lambdaRole = (snsTopic) => {
                     Effect: "Allow",
                     Action: "sns:Publish",
                     Resource: snsArn
-                },
-                {
-                    Effect: "Allow",
-                    Action: ["ses:*"],
-                    Resource: "*"
                 }
             ]
         })),
     },
     {
         dependsOn: snsTopic
+    });
+
+    // Full access for SES
+    const fullAccessToSES = new aws.iam.RolePolicyAttachment("fullAccessToSES", {
+        role: lambdaRole.name,
+        policyArn: "arn:aws:iam::aws:policy/AmazonSESFullAccess",
     });
 
     // Delegate full access to the dynamoDB service
@@ -62,6 +63,7 @@ const lambdaRole = (snsTopic) => {
     return {
         lambdaRole,
         snsPublishPolicy,
+        fullAccessToSES,
         fullAccessToDynamoDb,
         lambdaPolicy,
         cloudwatchPolicy
