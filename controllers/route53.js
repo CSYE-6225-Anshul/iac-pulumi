@@ -6,7 +6,7 @@ const subdomain = new pulumi.Config("domain").require("subdomain");
 const aRecord = (loadBalancer) => {
     let applicationLoadBalancer = loadBalancer.applicationLoadBalancer;
 
-    return new aws.route53.Record("demo.anshulsharma.me", {
+    return new aws.route53.Record("anshulsharma.me", {
         zoneId: hostedZoneId,
         name: subdomain,
         type: "A",
