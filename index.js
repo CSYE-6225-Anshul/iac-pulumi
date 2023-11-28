@@ -13,6 +13,11 @@ const createAutoScalingGroup = require('./controllers/autoScalingGroup');
 const createLoadBalancer = require('./controllers/loadBalancer');
 const createSnsTopic = require('./controllers/snsTopic');
 const createRoute53 = require('./controllers/route53');
+const createStorageBucket = require('./controllers/storageBucket');
+const createServiceAccount = require('./controllers/serviceAccount');
+const createDynamoDB = require('./controllers/dynamoDB');
+const createLambdaRole = require('./controllers/lambdaRole');
+const createLambdaFunction = require('./controllers/lambdaFunction');
 
 const createCloud = async () => {
     // get latest ami
@@ -56,6 +61,21 @@ const createCloud = async () => {
 
     // Create an A record
     const aRecord = createRoute53(loadBalancer);
+
+    // Create gcp storage bucket
+    const storageBucket = createStorageBucket();
+
+    // Create gcp service account
+    const serviceAccount = createServiceAccount();
+
+    // Create Dynamo DB
+    const dynamoDB = createDynamoDB();
+
+    // Create lambda role
+    const lambdaRole = createLambdaRole(snsTopic);
+
+    // Create Lambda Function
+    const lambdaFunction = createLambdaFunction(snsTopic, storageBucket, serviceAccount, dynamoDB, lambdaRole);
 }
 
 createCloud();
