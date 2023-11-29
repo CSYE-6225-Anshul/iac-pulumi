@@ -1,5 +1,4 @@
 const aws = require('@pulumi/aws');
-const uuid = require('uuid');
 
 const createDynamoDB = () => {
     // DynamoDB Table
@@ -67,11 +66,7 @@ const createDynamoDB = () => {
                 readCapacity: 1,
                 writeCapacity: 1,
             },
-        ],
-    }, {
-        dynamicProviders: {
-            id: () => uuid.v4(),
-        },
+        ]
     });
 }
 
