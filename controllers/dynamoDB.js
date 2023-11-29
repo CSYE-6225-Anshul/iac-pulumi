@@ -12,6 +12,7 @@ const createDynamoDB = () => {
             { name: "emailSentTime", type: "S" },
             { name: "assignmentId", type: "S" },
             { name: "accountId", type: "S" },
+            { name: "status", type: "S" }
         ],
         hashKey: "id", // Using Email as the hash key
         readCapacity: 1,
@@ -55,6 +56,13 @@ const createDynamoDB = () => {
             {
                 name: "AccountIdIndex",
                 hashKey: "accountId",
+                projectionType: "ALL",
+                readCapacity: 1,
+                writeCapacity: 1,
+            },
+            {
+                name: "StatusIndex",
+                hashKey: "status",
                 projectionType: "ALL",
                 readCapacity: 1,
                 writeCapacity: 1,
