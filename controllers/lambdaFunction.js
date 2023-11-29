@@ -17,7 +17,7 @@ const lambdaFunction = (snsTopic, storageBucket, serviceAccount, dynamoDB, lambd
         role: lr.arn,
         handler: "serverless/index.handler",
         runtime: "nodejs18.x",
-        timeout: 10,
+        timeout: 8,
         environment: {
             variables: {
                 "BUCKET_NAME": bucket.name,
@@ -49,6 +49,7 @@ const lambdaFunction = (snsTopic, storageBucket, serviceAccount, dynamoDB, lambd
 
     return {
         lambdaFunc,
+        lambdaPermission,
         topicSubscription
     }
 }
