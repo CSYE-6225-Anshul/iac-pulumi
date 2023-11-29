@@ -17,6 +17,7 @@ const lambdaFunction = (snsTopic, storageBucket, serviceAccount, dynamoDB, lambd
         role: lr.arn,
         handler: "serverless/index.handler",
         runtime: "nodejs18.x",
+        timeout: 10,
         environment: {
             variables: {
                 "BUCKET_NAME": bucket.name,
@@ -27,6 +28,13 @@ const lambdaFunction = (snsTopic, storageBucket, serviceAccount, dynamoDB, lambd
                 "REGION": region
             },
         },
+    });
+
+    const lambdaPermission = new aws.lambda.Permission("snsTopicPermission", {
+        action: "lambda:InvokeFunction",
+        function: lambdaFunc,
+        principal: "sns.amazonaws.com",
+        sourceArn: snsTopic.arn
     });
 
     // SNS topic subscription

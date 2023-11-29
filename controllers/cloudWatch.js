@@ -21,6 +21,12 @@ const cw = () => {
         roles: [cloudWatchAgentRole.name],
     });
 
+    // Attach IAM policy for CloudWatch Agent to the role
+    const cloudWatchAgentSNSPolicyAttachment = new aws.iam.PolicyAttachment("cloudWatchAgentSNSPolicyAttachment", {
+        policyArn: "arn:aws:iam::aws:policy/AmazonSNSFullAccess",
+        roles: [cloudWatchAgentRole.name],
+    });
+
     // Attach IAM role to EC2 instance
     const ec2InstanceRoleAttachment = new aws.iam.InstanceProfile("ec2InstanceProfile", {
         role: cloudWatchAgentRole.name,
@@ -29,6 +35,7 @@ const cw = () => {
     return {
         cloudWatchAgentRole,
         cloudWatchAgentPolicyAttachment,
+        cloudWatchAgentSNSPolicyAttachment,
         ec2InstanceRoleAttachment
     }
 }
