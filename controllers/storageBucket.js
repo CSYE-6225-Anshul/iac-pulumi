@@ -1,5 +1,6 @@
+const pulumi = require("@pulumi/pulumi");
 const gcp = require("@pulumi/gcp");
-const project = new pulumi.Config("gcp").require("region");
+const region = new pulumi.Config("gcp").require("region");
 
 // Create a Google Cloud Storage bucket
 const createBucket = () => {
@@ -17,7 +18,7 @@ const createBucket = () => {
             responseHeaders: ["*"],
         }],
         forceDestroy: true,
-        location: project,
+        location: region,
         uniformBucketLevelAccess: true
     });
 }
