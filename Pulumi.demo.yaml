@@ -13,6 +13,7 @@ config:
   domain:hostedZoneId: Z07353843HLA4AEQ3JIL0
   domain:subdomain: 
   gcp:project: csye-demo
+  gcp:region: US-EAST1
   metrics:hostname: localhost
   metrics:port: 8125
   source:email: anshuls1610@gmail.com

@@ -8,6 +8,7 @@ config:
   domain:hostedZoneId: Z0591561QV2WLJRB4K3Q
   domain:subdomain: ""
   gcp:project: csye-dev
+  gcp:region: US-EAST1
   metrics:hostname: localhost
   metrics:port: "8125"
   myApplicationPort:applicationPort: "8080"

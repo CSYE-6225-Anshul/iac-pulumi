@@ -1,4 +1,5 @@
 const gcp = require("@pulumi/gcp");
+const project = new pulumi.Config("gcp").require("region");
 
 // Create a Google Cloud Storage bucket
 const createBucket = () => {
@@ -12,11 +13,11 @@ const createBucket = () => {
                 "POST",
                 "DELETE",
             ],
-            origins: ["http://dev.anshulsharma.com"],
+            origins: ["http://dev.anshulsharma.me", "http://demo.anshulsharma.me", "https://dev.anshulsharma.me", "https://demo.anshulsharma.me"],
             responseHeaders: ["*"],
         }],
         forceDestroy: true,
-        location: "US-EAST1",
+        location: project,
         uniformBucketLevelAccess: true
     });
 }
