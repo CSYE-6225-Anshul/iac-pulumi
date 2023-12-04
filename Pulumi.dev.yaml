@@ -17,3 +17,4 @@ config:
   mySubnetMask:subnetMask: "24"
   myVpc:cidrBlock: 10.0.0.0/16
   source:email: anshuls1610@gmail.com
+  acm:domain: dev.anshulsharma.me

@@ -13,7 +13,6 @@ const asg = async (amiId, myVpc, subnets, securityGroups, userDataScript, cloudW
         vpcId: myVpc.id,
         securityGroups: [applicationSecurityGroup.id],
         vpcSecurityGroupIds: [applicationSecurityGroup.id],
-        // subnetId: myPublicSubnets[0].id,
         imageId: amiId,
         keyName: keyId,
         instanceType: "t2.micro",
@@ -87,7 +86,7 @@ const asg = async (amiId, myVpc, subnets, securityGroups, userDataScript, cloudW
         namespace: "AWS/EC2",
         period: "60",
         statistic: "Average",
-        threshold: "5",
+        threshold: "50",
         actionsEnabled: true,
         alarmActions: [autoScalingPolicyScaleOut.arn],
         dimensions: {
@@ -103,7 +102,7 @@ const asg = async (amiId, myVpc, subnets, securityGroups, userDataScript, cloudW
         namespace: "AWS/EC2",
         period: "60",
         statistic: "Average",
-        threshold: "3",
+        threshold: "30",
         actionsEnabled: true,
         alarmActions: [autoScalingPolicyScaleIn.arn],
         dimensions: {
