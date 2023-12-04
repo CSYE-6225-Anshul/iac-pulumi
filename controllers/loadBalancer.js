@@ -1,5 +1,6 @@
 const pulumi = require("@pulumi/pulumi");
 const aws = require("@pulumi/aws");
+const sslCertificate = require("./sslCertificate");
 const hostedZoneId = new pulumi.Config("domain").require("hostedZoneId");
 
 const lb = (myVpc, subnets, securityGroups) => {
@@ -7,9 +8,6 @@ const lb = (myVpc, subnets, securityGroups) => {
     let loadBalancerSecurityGroup = securityGroups.loadBalancerSecurityGroup;
     
     const applicationLoadBalancer = new aws.lb.LoadBalancer("myLoadBalancer", {
-        // vpcId: myVpc.id,
-        // availabilityZone: hostedZoneId,
-        // internal: false,
         loadBalancerType: "application",
         securityGroups: [loadBalancerSecurityGroup.id],
         subnets: myPublicSubnets.map(subnet => subnet.id),
@@ -34,7 +32,10 @@ const lb = (myVpc, subnets, securityGroups) => {
 
     const listener = new aws.lb.Listener("myListener", {
         loadBalancerArn: applicationLoadBalancer.arn,
-        port: 80,
+        port: 443,
+        protocol: "HTTPS",
+        sslPolicy: "ELBSecurityPolicy-2016-08",
+        certificateArn: sslCertificate,
         defaultActions: [{
             type: "forward",
             targetGroupArn: targetGroup.arn
