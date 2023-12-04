@@ -26,12 +26,8 @@ const userDataScript = (rdsInstance, snsTopic) => {
     sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/csye6225/api/cloudwatch/config.json -s
 
     # Enable and start the systemd service
-    sudo systemctl daemon-reload
     sudo systemctl enable amazon-cloudwatch-agent
     sudo systemctl start amazon-cloudwatch-agent
-
-    sudo systemctl enable cloud.service
-    sudo systemctl start cloud.service
     `;
     
     const buffer = userData.apply(u => Buffer.from(u).toString('base64'));
