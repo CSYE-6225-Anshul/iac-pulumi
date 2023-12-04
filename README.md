@@ -90,12 +90,6 @@ Ensure that the Lambda function has the following environment variables configur
 ### Import SSL Certificate to AWS Certificate Manager using command:
 - **aws acm import-certificate --certificate fileb://path-to-file --private-key fileb://path-to-file --certificate-chain fileb://path-to-file**
 
-### Create Load Balancer Listener using above imported certificate:
-- **aws elbv2 create-listener --load-balancer-arn <lb-arn> --protocol HTTPS --port 443 --certificates CertificateArn=<cert-arn> --default-actions Type=forward,TargetGroupArn=<lb-target-grp-arn>**
-
-### To perfrom instance refresh:
-- **aws autoscaling start-instance-refresh --auto-scaling-group-name <auto-scaling-group-name> --preferences MinHealthyPercentage=90,InstanceWarmup=60 --strategy Rolling**
-
 ### Pulumi States
 1. Refreshing State: If the infrastructure is updated outside of Pulumi, run the following command to refresh the state:
 - **pulumi refresh**
