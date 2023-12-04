@@ -34,8 +34,9 @@ const sg = (myVpc) => {
                 fromPort: 22,
                 toPort: 22,
                 protocol: "tcp",
-                cidrBlocks: ["0.0.0.0/0"],
-                ipv6_cidr_blocks: ["::/0"]
+                securityGroups: [loadBalancerSecurityGroup.id]
+                // cidrBlocks: ["0.0.0.0/0"],
+                // ipv6_cidr_blocks: ["::/0"]
             },
             {
                 fromPort: applicationPort,
